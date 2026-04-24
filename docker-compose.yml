@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # --- PAR 1: Servidor Ubuntu + Redis ---
+  server-ubuntu:
+    image: ubuntu:22.04
+    container_name: server_ubuntu_app
+    command: tail -f /dev/null 
+    networks:
+      - rede_privada_1
+    depends_on:
+      - db-redis
+
+  db-redis:
+    image: redis:alpine
+    container_name: db_redis_cache
+    volumes:
+      - volume_redis:/data
+    networks:
+      - rede_privada_1
+
+  # --- PAR 2: Servidor CentOS + PostgreSQL ---
+  server-centos:
+    image: centos:7
+    container_name: server_centos_app
+    command: tail -f /dev/null 
+    networks:
+      - rede_privada_2
+    depends_on:
+      - db-postgres
+
+  db-postgres:
+    image: postgres:14-alpine
+    container_name: db_postgres_main
+    environment:
+      POSTGRES_USER: user_code
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: appdb
+    volumes:
+      - volume_postgres:/var/lib/postgresql/data
+    networks:
+      - rede_privada_2
+
+volumes:
+  volume_redis:
+  volume_postgres:
+
+networks:
+  rede_privada_1:
+    driver: bridge
+  rede_privada_2:
+    driver: bridge
